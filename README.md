@@ -1,11 +1,21 @@
+
+![](header.jpeg)
+
 # workflow-devkit-minimal
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-14.2.3-black?logo=nextdotjs" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-18.3.1-61dafb?logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5.4.5-3178c6?logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vercel%20Workflow-latest-000000?logo=vercel" alt="Vercel Workflow" />
+</p>
 
 Vercel Workflow DevKit の「耐久性 / 観測性 / 自動リトライ / スケジューリング」を、1 つのストリーミング UI でライブ体験できるミニラボです。  
 メールアドレスを送信すると、4 つのチェックポイントが順番に進み、各ステップの結果が即座に UI に流れてきます。
 
 ---
 
-## 🚀 セットアップ
+## 🛠️ セットアップ
 
 ```bash
 npm install
@@ -28,9 +38,13 @@ docker compose up --build
 
 ブラウザで [http://localhost:3000](http://localhost:3000) を開き、フォームまたは `curl` でワークフローを起動してください。
 
+![](image.png)
+
 ---
 
 ## 🔍 デモで体験できること
+
+https://x.com/hAru_mAki_ch/status/1981786118950728180
 
 1. **Profile created（Reliability）**  
    durable storage にプロファイルを保存。既存レコードがあれば即座に復元される様子がログに流れます。
@@ -47,7 +61,7 @@ docker compose up --build
 
 ---
 
-## 📁 ディレクトリ構成
+## 🗂️ ディレクトリ構成
 
 ```
 workflow-devkit-minimal/
