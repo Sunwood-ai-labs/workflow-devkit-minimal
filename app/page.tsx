@@ -11,9 +11,37 @@ type WorkflowStatus =
       email: string;
       message: string;
       runId?: string;
+      storyboard: StoryboardStep[];
       startedAt: string;
     }
   | { state: "error"; message: string; email: string };
+
+type StoryboardStep = {
+  title: string;
+  description: string;
+  badge: "reliability" | "durability" | "observability";
+};
+
+const featureHighlights: StoryboardStep[] = [
+  {
+    title: "Reliability-as-code",
+    description:
+      "Workflow DevKit keeps state in durable storage so retries and deployments never lose context.",
+    badge: "reliability",
+  },
+  {
+    title: "Pause & resume at will",
+    description:
+      "Long-running jobs park with `sleep`, resuming later without holding onto infrastructure.",
+    badge: "durability",
+  },
+  {
+    title: "Trace everything",
+    description:
+      "The dashboard surfaces every run, step, and replay—debugging becomes a guided tour instead of spelunking.",
+    badge: "observability",
+  },
+];
 
 export default function Home() {
   const [email, setEmail] = useState("");
@@ -62,6 +90,7 @@ export default function Home() {
             ? data.message
             : `Workflow started for ${submittedEmail}`,
         runId: typeof data.runId === "string" ? data.runId : undefined,
+        storyboard: Array.isArray(data.storyboard) ? data.storyboard : featureHighlights,
         startedAt: new Date().toISOString(),
       });
       setEmail("");
@@ -85,9 +114,8 @@ export default function Home() {
             Workflow DevKit Minimal Demo
           </h1>
           <p className={styles.subtitle}>
-            Kick off the <code>handleUserSignup</code> workflow by submitting an
-            email. Your workflow status will glow up in real time once things
-            start rolling〜✨
+            Kick off the <code>handleWorkflowShowcase</code> orchestration by submitting an email.
+            Your workflow status will glow up in real time once things start rolling〜✨
           </p>
         </header>
 
@@ -118,6 +146,8 @@ export default function Home() {
         <div className={styles.statusContainer}>
           <StatusPanel status={status} formattedStartedAt={formattedStartedAt} />
         </div>
+
+        <FeatureShowcase />
 
         <div className={styles.terminal}>
           <p className={styles.supportingText}>Try from the terminal:</p>
@@ -189,20 +219,37 @@ function StatusPanel({
               </p>
             )}
           </div>
-          <div className={styles.nextSteps}>
-            <p className={styles.nextStepsTitle}>次のチェックポイント</p>
-            <ol className={styles.nextStepsList}>
-              <li>Welcome → Onboarding の順にメール送信ステップが進みます。</li>
-              <li>
-                進捗は `npx workflow inspect runs`
-                で確認できます。Web UI は `--web` を追加。
-              </li>
-              <li>
-                Docker のログにステップごとのリトライと完了状況が出力されます。
-              </li>
-            </ol>
-          </div>
+          <Storyboard prefix="status" steps={status.storyboard ?? featureHighlights} />
         </div>
       );
   }
+}
+
+function FeatureShowcase() {
+  return (
+    <section className={styles.featureSection} aria-label="Workflow DevKit highlights">
+      <h2 className={styles.featureTitle}>Why Workflow DevKit shines</h2>
+      <p className={styles.featureIntro}>
+        Each run turns your product requirements into reliability guarantees—durability, retries, and
+        introspection with almost zero boilerplate.
+      </p>
+      <Storyboard prefix="feature" steps={featureHighlights} />
+    </section>
+  );
+}
+
+function Storyboard({ steps, prefix }: { steps: StoryboardStep[]; prefix: string }) {
+  return (
+    <ol className={styles.storyboard}>
+      {steps.map((step) => (
+        <li key={`${prefix}-${step.title}`} className={styles.storyboardItem}>
+          <span className={`${styles.badge} ${styles[`badge-${step.badge}`]}`}>
+            {step.badge}
+          </span>
+          <h3>{step.title}</h3>
+          <p>{step.description}</p>
+        </li>
+      ))}
+    </ol>
+  );
 }

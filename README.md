@@ -1,7 +1,7 @@
 # workflow-devkit-minimal
 
 Vercel Workflow DevKit を Next.js で試せる最小構成テンプレートです。  
-ローカルや Docker Compose から `handleUserSignup` ワークフローを実行できます。
+ローカルや Docker Compose から `handleWorkflowShowcase` ワークフローを実行できます。
 
 ---
 
@@ -39,12 +39,12 @@ docker compose up --build
 
 ## 🧠 ワークフロー構成
 
-- `workflows/user-signup.ts` に `handleUserSignup` ワークフローを実装。  
-- `"use workflow"` と `"use step"` により耐久化・自動リトライが有効化。  
-- `sleep("5s")` で中断と再開を体験。  
-- `FatalError` を投げるとリトライせず即停止。
+- `workflows/user-signup.ts` に `handleWorkflowShowcase` ワークフローを実装。  
+- `"use workflow"` と `"use step"` が状態を耐久化し、決定的リプレイ・自動リトライを提供。  
+- `RetryableError` で外部サービスの揺らぎを吸収、`sleep` で長時間の待機を安全にスケジュール。  
+- レスポンスのストーリーボードが UI に表示され、DevKit が担う役割を即座に把握できます。
 
-API エンドポイント `app/api/signup/route.ts` で `start(handleUserSignup, [email])` を呼び出し、ワークフローを起動します。
+API エンドポイント `app/api/signup/route.ts` で `start(handleWorkflowShowcase, [email])` を呼び出し、ワークフローを起動します。
 
 ---
 
