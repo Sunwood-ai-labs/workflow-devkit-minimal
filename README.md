@@ -39,9 +39,11 @@ docker compose up --build
 3. **Welcome email with retry（Reliability）**  
    1 回目は意図的に失敗 → `Retryable` の概念を模した自動リトライで成功するまでの過程を可視化。
 4. **Scheduled check-in（Durability）**  
-   `sleep` 相当の待機を設定し、残り時間のカウントダウンを UI で表示。寝かせている間も状態が保たれることを体感できます。
+   `sleep` 相当の待機を設定し、残り時間のカウントダウン→タイマー満了時の自動復帰イベントまでをライブで確認できます。
 
 これらのイベントは `text/event-stream` で逐次配信され、`app/page.tsx` がリアルタイムに描画を更新します。
+実際の Workflow DevKit ではこの API ハンドラーを `start(handleXXXWorkflow, [...])` に差し替えるだけで、
+同じ UI を“本物”のワークフロー監視ダッシュボードとして使えます。
 
 ---
 

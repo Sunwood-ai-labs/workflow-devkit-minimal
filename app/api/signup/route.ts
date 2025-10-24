@@ -46,6 +46,10 @@ type DemoEvent =
       checkInAt: string;
     }
   | {
+      type: "check-in-resumed";
+      resumedAt: string;
+    }
+  | {
       type: "completed";
       message: string;
     };
@@ -80,6 +84,7 @@ export async function POST(request: Request) {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
+  const CHECK_IN_DELAY_MS = 12_000;
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -185,7 +190,7 @@ export async function POST(request: Request) {
         await delay(500);
 
         // Stage 4: Durable scheduling
-        const checkInAt = new Date(Date.now() + 45_000).toISOString();
+        const checkInAt = new Date(Date.now() + CHECK_IN_DELAY_MS).toISOString();
         store.users.set(normalizedEmail, {
           ...store.users.get(normalizedEmail)!,
           checkInAt,
@@ -195,7 +200,22 @@ export async function POST(request: Request) {
           checkInAt,
         });
 
-        await delay(300);
+        await delay(CHECK_IN_DELAY_MS);
+
+        const currentUser = store.users.get(normalizedEmail);
+        if (currentUser) {
+          store.users.set(normalizedEmail, {
+            ...currentUser,
+            checkInAt: undefined,
+          });
+        }
+
+        push({
+          type: "check-in-resumed",
+          resumedAt: new Date().toISOString(),
+        });
+
+        await delay(400);
 
         push({
           type: "completed",

@@ -53,6 +53,7 @@ type StreamEvent =
       provider: string;
     }
   | { type: "scheduled-check-in"; checkInAt: string }
+  | { type: "check-in-resumed"; resumedAt: string }
   | { type: "completed"; message: string }
   | { type: "error"; message: string };
 
@@ -82,7 +83,8 @@ const stageBlueprint: StageState[] = [
     id: "checkin",
     title: "Scheduled check-in",
     badge: "durability",
-    description: "タイマーをセットして休眠。時間が来ても状態が維持されることをカウントダウンで確認！",
+    description:
+      "タイマーをセットして休眠。カウントダウンがゼロになると自動復帰する様子までフルで追跡！",
     status: "pending",
   },
 ];
@@ -296,14 +298,34 @@ export default function Home() {
 
       case "scheduled-check-in":
         updateStage("checkin", {
-          status: "success",
-          log: "必要になるまで休眠。時間が来たら自動で再開します！",
+          status: "active",
+          log: "指定時刻までスリープ中…（カウントダウンをチェック！）",
           data: {
             checkInAt: event.checkInAt,
           },
         });
         setCheckInAt(event.checkInAt);
-        appendLog("⏰ 次のチェックインをスケジュール");
+        appendLog(`⏰ 次のチェックイン: ${new Date(event.checkInAt).toLocaleTimeString()}`);
+        break;
+
+      case "check-in-resumed":
+        setStages((prev) =>
+          prev.map((stage) =>
+            stage.id === "checkin"
+              ? {
+                  ...stage,
+                  status: "success",
+                  log: "タイマーが切れたので自動再開しました！",
+                  data: {
+                    ...(stage.data ?? {}),
+                    resumedAt: event.resumedAt,
+                  },
+                }
+              : stage
+          )
+        );
+        setCheckInAt(null);
+        appendLog("🔁 予定時刻になったのでワークフローが復帰");
         break;
 
       case "completed":
@@ -484,6 +506,9 @@ function StageContent({
   stage: StageState;
   countdownLabel: string | null;
 }) {
+  const scheduledAt = stage.data?.checkInAt as string | undefined;
+  const resumedAt = stage.data?.resumedAt as string | undefined;
+
   if (stage.status === "pending") {
     return null;
   }
@@ -556,12 +581,18 @@ function StageContent({
         <dl className={styles.dataGrid}>
           <div>
             <dt>Check-in at</dt>
-            <dd>{new Date(stage.data?.checkInAt as string).toLocaleString()}</dd>
+            <dd>{scheduledAt ? new Date(scheduledAt).toLocaleString() : "—"}</dd>
           </div>
           {countdownLabel && (
             <div>
               <dt>Next resume in</dt>
               <dd>{countdownLabel}</dd>
+            </div>
+          )}
+          {resumedAt && (
+            <div>
+              <dt>Resumed at</dt>
+              <dd>{new Date(resumedAt).toLocaleString()}</dd>
             </div>
           )}
         </dl>
@@ -576,7 +607,7 @@ function StageContent({
 function StatusPill({ status }: { status: StageStatus }) {
   const label = {
     pending: "待機中",
-    active: "リトライ中",
+    active: "進行中",
     success: "完了",
     error: "失敗",
   }[status];
