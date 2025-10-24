@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import styles from "./page.module.css";
 
 type WorkflowStatus =
   | { state: "idle" }
@@ -77,87 +78,50 @@ export default function Home() {
   };
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem",
-        fontFamily: "system-ui, sans-serif",
-        background: "#f5f5f5",
-      }}
-    >
-      <section
-        style={{
-          width: "100%",
-          maxWidth: "520px",
-          background: "#fff",
-          borderRadius: "12px",
-          boxShadow: "0 12px 24px rgba(0, 0, 0, 0.08)",
-          padding: "2.25rem",
-          display: "grid",
-          gap: "1.75rem",
-        }}
-      >
-        <header>
-          <h1 style={{ marginBottom: "0.5rem" }}>
+    <main className={styles.page}>
+      <section className={styles.card} aria-labelledby="hero-title">
+        <header className={styles.header}>
+          <h1 id="hero-title" className={styles.title}>
             Workflow DevKit Minimal Demo
           </h1>
-          <p style={{ marginBottom: "0", color: "#555" }}>
+          <p className={styles.subtitle}>
             Kick off the <code>handleUserSignup</code> workflow by submitting an
-            email address. Progress will appear below once the workflow starts.
+            email. Your workflow status will glow up in real time once things
+            start rolling〜✨
           </p>
         </header>
 
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem" }}>
-          <label style={{ display: "grid", gap: "0.5rem" }}>
-            <span>Email address</span>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <label className={styles.label} htmlFor="email">
+            Email address
             <input
+              id="email"
               type="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="jane@example.com"
-              style={{
-                padding: "0.75rem",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-              }}
+              className={styles.input}
               disabled={isSubmitting}
             />
           </label>
           <button
             type="submit"
             disabled={isSubmitting}
-            style={{
-              padding: "0.75rem",
-              borderRadius: "8px",
-              border: "none",
-              background: "#111827",
-              color: "#fff",
-              cursor: "pointer",
-              fontWeight: 600,
-              opacity: isSubmitting ? 0.7 : 1,
-            }}
+            className={styles.button}
+            aria-live="polite"
           >
             {isSubmitting ? "Starting workflow…" : "Start workflow"}
           </button>
         </form>
 
-        <StatusPanel status={status} formattedStartedAt={formattedStartedAt} />
+        <div className={styles.statusContainer}>
+          <StatusPanel status={status} formattedStartedAt={formattedStartedAt} />
+        </div>
 
-        <div style={{ color: "#555", fontSize: "0.9rem" }}>
-          <p style={{ marginBottom: "0.5rem" }}>Try from the terminal:</p>
-          <pre
-            style={{
-              background: "#111827",
-              color: "#f3f4f6",
-              borderRadius: "8px",
-              padding: "1rem",
-              overflowX: "auto",
-            }}
-          >
+        <div className={styles.terminal}>
+          <p className={styles.supportingText}>Try from the terminal:</p>
+          <pre className={styles.terminalPre}>
 {`curl -X POST --json '{"email":"demo@example.com"}' http://localhost:3000/api/signup`}
           </pre>
         </div>
@@ -173,53 +137,36 @@ function StatusPanel({
   status: WorkflowStatus;
   formattedStartedAt: string;
 }) {
+  const statusClassName = {
+    idle: `${styles.status} ${styles.statusIdle}`,
+    sending: `${styles.status} ${styles.statusSending}`,
+    error: `${styles.status} ${styles.statusError}`,
+    success: `${styles.status} ${styles.statusSuccess}`,
+  } as const;
+
   switch (status.state) {
     case "idle":
       return (
-        <div
-          style={{
-            padding: "1rem",
-            borderRadius: "8px",
-            border: "1px solid #e5e7eb",
-            background: "#f9fafb",
-            color: "#4b5563",
-          }}
-        >
-          Submit an email to start the workflow; progress will appear here.
+        <div className={statusClassName.idle}>
+          Submit an email to kick things off — your workflow journey will pop up
+          right here once it’s in motion💃
         </div>
       );
 
     case "sending":
       return (
-        <div
-          style={{
-            padding: "1rem",
-            borderRadius: "8px",
-            border: "1px solid #c4b5fd",
-            background: "#ede9fe",
-            color: "#4338ca",
-          }}
-        >
-          Starting workflow for <strong>{status.email}</strong>…
+        <div className={statusClassName.sending}>
+          Starting workflow for <strong>{status.email}</strong>… hold tight,
+          the automation glam squad is suiting up💅
         </div>
       );
 
     case "error":
       return (
-        <div
-          style={{
-            padding: "1rem",
-            borderRadius: "8px",
-            border: "1px solid #fca5a5",
-            background: "#fee2e2",
-            color: "#b91c1c",
-            display: "grid",
-            gap: "0.35rem",
-          }}
-        >
+        <div className={statusClassName.error}>
           <strong>Failed</strong>
           <span>{status.message}</span>
-          <span style={{ fontSize: "0.85rem" }}>
+          <span>
             Email you tried: <code>{status.email}</code>
           </span>
         </div>
@@ -227,51 +174,24 @@ function StatusPanel({
 
     case "success":
       return (
-        <div
-          style={{
-            padding: "1.25rem",
-            borderRadius: "12px",
-            border: "1px solid #bbf7d0",
-            background: "#f0fdf4",
-            color: "#166534",
-            display: "grid",
-            gap: "0.75rem",
-          }}
-        >
+        <div className={statusClassName.success}>
           <div>
-            <p style={{ fontWeight: 600, margin: 0 }}>
+            <p>
               Workflow queued for <strong>{status.email}</strong> 🎉
             </p>
-            <p style={{ margin: "0.35rem 0", color: "#15803d" }}>
-              {status.message}
-            </p>
-            <p style={{ margin: 0, fontSize: "0.85rem" }}>
+            <p>{status.message}</p>
+            <p>
               Started at: {formattedStartedAt || "just now"}
             </p>
             {status.runId && (
-              <p style={{ margin: "0.25rem 0 0", fontSize: "0.85rem" }}>
+              <p>
                 Run ID: <code>{status.runId}</code>
               </p>
             )}
           </div>
-          <div
-            style={{
-              borderTop: "1px solid #bbf7d0",
-              paddingTop: "0.75rem",
-              display: "grid",
-              gap: "0.5rem",
-            }}
-          >
-            <p style={{ margin: 0, fontWeight: 600 }}>次のチェックポイント</p>
-            <ol
-              style={{
-                margin: 0,
-                paddingLeft: "1.25rem",
-                color: "#166534",
-                display: "grid",
-                gap: "0.35rem",
-              }}
-            >
+          <div className={styles.nextSteps}>
+            <p className={styles.nextStepsTitle}>次のチェックポイント</p>
+            <ol className={styles.nextStepsList}>
               <li>Welcome → Onboarding の順にメール送信ステップが進みます。</li>
               <li>
                 進捗は `npx workflow inspect runs`
