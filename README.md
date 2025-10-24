@@ -1,7 +1,7 @@
 # workflow-devkit-minimal
 
-Vercel Workflow DevKit を Next.js で試せる最小構成テンプレートです。  
-ローカルや Docker Compose から `handleWorkflowShowcase` ワークフローを実行できます。
+Vercel Workflow DevKit の「耐久性 / 観測性 / 自動リトライ / スケジューリング」を、1 つのストリーミング UI でライブ体験できるミニラボです。  
+メールアドレスを送信すると、4 つのチェックポイントが順番に進み、各ステップの結果が即座に UI に流れてきます。
 
 ---
 
@@ -12,17 +12,10 @@ npm install
 npm run dev
 ```
 
-別ターミナルからワークフローを起動:
+ブラウザを開いたままでも、ターミナルから直接ラボを回せます:
 
 ```bash
 curl -X POST --json '{"email":"hello@example.com"}' http://localhost:3000/api/signup
-```
-
-実行状況の確認:
-
-```bash
-npx workflow inspect runs         # CLI
-npx workflow inspect runs --web   # Web UI
 ```
 
 ---
@@ -37,14 +30,18 @@ docker compose up --build
 
 ---
 
-## 🧠 ワークフロー構成
+## 🔍 デモで体験できること
 
-- `workflows/user-signup.ts` に `handleWorkflowShowcase` ワークフローを実装。  
-- `"use workflow"` と `"use step"` が状態を耐久化し、決定的リプレイ・自動リトライを提供。  
-- `RetryableError` で外部サービスの揺らぎを吸収、`sleep` で長時間の待機を安全にスケジュール。  
-- レスポンスのストーリーボードが UI に表示され、DevKit が担う役割を即座に把握できます。
+1. **Profile created（Reliability）**  
+   durable storage にプロファイルを保存。既存レコードがあれば即座に復元される様子がログに流れます。
+2. **Profile enrichment（Observability）**  
+   ランダムユーザー API を呼び出し、取得した属性をそのまま UI に表示。外部依存のレスポンスを観測できます。
+3. **Welcome email with retry（Reliability）**  
+   1 回目は意図的に失敗 → `Retryable` の概念を模した自動リトライで成功するまでの過程を可視化。
+4. **Scheduled check-in（Durability）**  
+   `sleep` 相当の待機を設定し、残り時間のカウントダウンを UI で表示。寝かせている間も状態が保たれることを体感できます。
 
-API エンドポイント `app/api/signup/route.ts` で `start(handleWorkflowShowcase, [email])` を呼び出し、ワークフローを起動します。
+これらのイベントは `text/event-stream` で逐次配信され、`app/page.tsx` がリアルタイムに描画を更新します。
 
 ---
 
@@ -54,12 +51,10 @@ API エンドポイント `app/api/signup/route.ts` で `start(handleWorkflowSho
 workflow-devkit-minimal/
 ├─ app/
 │  ├─ layout.tsx
-│  ├─ page.tsx
+│  ├─ page.tsx                 # ストリーミング UI（React + hooks）
 │  └─ api/
 │     └─ signup/
-│        └─ route.ts          # ワークフロー起動 API
-├─ workflows/
-│  └─ user-signup.ts          # ワークフロー定義
+│        └─ route.ts          # SSE で4ステップを順次配信する API
 ├─ docker-compose.yml
 ├─ Dockerfile
 ├─ next.config.mjs            # withWorkflow 設定
@@ -73,8 +68,6 @@ workflow-devkit-minimal/
 
 ## 📌 メモ
 
-- `npx workflow inspect runs` で CLI による可視化。  
-- `npx workflow inspect runs --web` で Web UI を起動。  
-- GitHub へ push 後は `npm run dev` だけで動作確認できます。
-
-拡張テンプレート（Hook や AI Agent 連携など）が必要な場合は、お気軽にどうぞ！
+- 各イベントは SSE (`text/event-stream`) でブラウザへ送信されます。  
+- 実際のプロダクションでは Vercel Workflow と組み合わせて、ここで示した 4 つの耐久パターンを拡張してください。
+- GitHub へ push 後は `npm run dev` だけで動作確認できます。デモの安全性を保つため、一部の API はサンプルデータでフォールバックします。
